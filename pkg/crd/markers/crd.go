@@ -63,6 +63,9 @@ var CRDMarkers = []*definitionWithHelp{
 		WithHelp(ExternalDocs{}.Help()),
 	must(markers.MakeDefinition("kubebuilder:externalDocs", markers.DescribesType, ExternalDocs{})).
 		WithHelp(ExternalDocs{}.Help()),
+
+	must(markers.MakeDefinition("kubebuilder:topleveldesc", markers.DescribesType, TopLevelDesc{})).
+		WithHelp(TopLevelDesc{}.Help()),
 }
 
 // TODO: categories and singular used to be annotations types
@@ -405,6 +408,30 @@ func (s UnservedVersion) ApplyToCRD(crd *apiextensionsv1.CustomResourceDefinitio
 			continue
 		}
 		ver.Served = false
+		break
+	}
+	return nil
+}
+
+// +controllertools:marker:generateHelp:category=CRD
+
+// TopLevelDesc adds "description" to the top-level validation schema.
+//
+// This is useful for CRDs that want a top-level description field to describe
+// the resource. Specifying this marker will add a description field at the
+// top-level to the validation schema.
+type TopLevelDesc struct{}
+
+func (s TopLevelDesc) ApplyToCRD(crd *apiextensionsv1.CustomResourceDefinitionSpec, version string) error {
+	for i := range crd.Versions {
+		ver := &crd.Versions[i]
+		if ver.Name != version {
+			continue
+		}
+		ver.Schema.OpenAPIV3Schema.Properties["description"] = apiextensionsv1.JSONSchemaProps{
+			Description: "Description is a human-readable description of the resource.",
+			Type:        "string",
+		}
 		break
 	}
 	return nil
