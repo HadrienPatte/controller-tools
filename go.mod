@@ -1,4 +1,4 @@
-module github.com/cilium/controller-tools
+module github.com/HadrienPatte/controller-tools
 
 go 1.25.0
 
